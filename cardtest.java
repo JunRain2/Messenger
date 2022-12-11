@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -13,15 +14,18 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import finalTerm.LoginWindow.MyFrame;
-
 public class cardtest {
 	int port; //각 부서별 포트 번호 저장
 	boolean set;
+	int myPort;
+	MessengerA msg;
+	String name;
 	
-	public cardtest()
+	public cardtest(int myPort, String name)
 	{
-		set = false;
+		MyFrame f = new MyFrame();
+		this.myPort = myPort;
+		this.name = name;
 	}
 	
 	class MyFrame extends JFrame implements ActionListener{
@@ -79,13 +83,14 @@ public class cardtest {
 		         add(panel_1);
 		         add(panel_2);
 		         
+		         //교수 
 		         professorCombo.addActionListener(new ActionListener() {
 		            public void actionPerformed(ActionEvent e) {
 		               port=professorCombo.getSelectedIndex()+5000;
 		               System.out.println(professorCombo.getSelectedItem().toString()+"의 포트번호는 "+port+"입니다.");
 		            }
 		         });
-		         
+		         //학생 
 		         userCombo.addActionListener(new ActionListener() {
 		            public void actionPerformed(ActionEvent e) {
 		               port=userCombo.getSelectedIndex()+6000;
@@ -94,7 +99,7 @@ public class cardtest {
 		         });
 		      }
 		   }
-		   public void actionPerformed(ActionEvent e) {
+		   public void actionPerformed(ActionEvent e){
 		      if(e.getActionCommand().equals("Exit")) {
 		         System.exit(0);
 		      } else if(e.getActionCommand().equals("<")) {
@@ -103,14 +108,12 @@ public class cardtest {
 		         cards.layout.next(cards);
 		      } else if(e.getActionCommand().equals("Select")) {
 		         dispose(); //현재 창을 닫고 이후 messenger 실행하면 됨 //현재 port에 값이 저장이 되어있는 상태
-		         set = true;
+		         try {
+					msg = new MessengerA(myPort, port, name);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 		      }
 		   }
-		   
 		}
-
-	public void startFrame() {
-		MyFrame f = new MyFrame();
-	}
-	
    }

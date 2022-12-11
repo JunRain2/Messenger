@@ -33,6 +33,7 @@ public class LoginWindow{
 	boolean set;// MenseengerA visible 설정.
 	cardtest card;
 	int myPort;
+	MyFrame f;
 
 	// 유저 클래스 
 	class User{
@@ -62,6 +63,7 @@ public class LoginWindow{
 
 	// 생성자.
 	public LoginWindow() throws IOException{
+		f = new MyFrame();
 		dbName = "user_db";
 		userList = new ArrayList<>();
 		readLog();
@@ -152,10 +154,12 @@ public class LoginWindow{
 		}
 
 		// 리스트 확인 메서드.
-		boolean checkList(String uid, String pwd)
-		{
-			for(User checkUser : userList) {
-				if(checkUser.uid == uid && checkUser.pwd == pwd) {
+		boolean checkList(String uid, String pwd){
+			Iterator<User> it = userList.iterator();
+			while (it.hasNext()) {
+				User u = it.next();
+				if (u.uid.equals(ruid) && u.pwd.equals(pwd)) {
+					myPort = u.id;
 					return true;
 				}
 			}
@@ -167,19 +171,19 @@ public class LoginWindow{
 			String pwd = pwdTextField.getText();
 
 			if(evt.getSource() == loginButton) {
-				// uid, pwd 검사.
-				Iterator<User> it = userList.iterator();
-				while (it.hasNext()) {
-					User u = it.next();
-					if (u.uid.equals(ruid) && u.pwd.equals(pwd)) {
-						myPort = u.id;
-						this.dispose();
-					}
-
-					else System.out.println("로그인 실패");
+				if (checkList(ruid,pwd)) {
+					this.dispose();
+					card = new cardtest(myPort, ruid);
+					System.out.println(ruid);
+					System.out.println(myPort);
 				}
+
 			}
 		}
+	}
+	public static void main(String[] args) throws IOException
+	{
+		new LoginWindow();
 	}
 }
 
