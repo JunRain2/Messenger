@@ -20,26 +20,33 @@ public class MessengerA {
     protected JTextField textField;
     protected JTextArea textArea;
     DatagramSocket socket;
-    // 받는 패킷.
     DatagramPacket messagePacket;
-    DatagramPacket namePacket;
     InetAddress address = null;
-    final int myPort = 5000;// 수신용 포트. 
-    final int otherPort = 6000;// 송신용 포트. 
+    int myPort;// 수신용 포트. 
+    int otherPort;// 송신용 포트. 
     String name;// 사용자 이름.
     String dbName;
     MyFrame f;
 
     // 자신의 주소를 생성자를 통해 생성.
     public MessengerA() throws IOException{
-        dbName = "msg_db";
+    	LoginWindow lg = new LoginWindow();
+    	cardtest card = new cardtest();
+    	
+    	lg.startFrame();
+    	name = lg.ruid;
+    	myPort = lg.myPort;
+    	
+    	card.startFrame();
+    	otherPort = card.port;
+    	
+    	dbName = "msg_db";
         f = new MyFrame();
         address = InetAddress.getByName("192.168.45.228");
         socket = new DatagramSocket(myPort);// UDP 프로토콜을 사용하는 소켓을 생성.
-        
     }
     
-    void getterName(String name)
+    void setName(String name)
     {
     	this.name = name;
     }
@@ -88,12 +95,9 @@ public class MessengerA {
         while(true){
             try {
                 byte[] messageBuf = new byte[256];
-                byte[] nameBuf = new byte[64];
-                namePacket = new DatagramPacket(nameBuf, nameBuf.length);// UD 패킷을 생성.
                 messagePacket = new DatagramPacket(messageBuf, messageBuf.length);
                 socket.receive(messagePacket);
-                socket.receive(namePacket);// 상대방 이름 받기.
-                String receiveMessage = new String(nameBuf) + ": " + new String(messageBuf) + "\n";
+                String receiveMessage = new String(new String(messageBuf) + "\n");
                 textArea.append(receiveMessage);// 받은 패킷을 영역에 표시.
             }catch (IOException e){
                 e.printStackTrace();
@@ -106,7 +110,7 @@ public class MessengerA {
     class MyFrame extends JFrame implements ActionListener {
         // 메신저 사용자 인터페이스.
     	public MyFrame(){
-            super("MessengerA");
+            super(name);
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
             textField = new JTextField(30);
@@ -118,28 +122,25 @@ public class MessengerA {
             add(textField, BorderLayout.PAGE_END);
             add(textArea, BorderLayout.CENTER);
             pack();
-            setVisible(false);
+            setVisible(true);
         }
 
     	// 이벤트 실행시 메시지 전송.
         public void actionPerformed(ActionEvent evt) {
             String s = textField.getText();
+            s ="["+ name+"] :" + s;
             byte[] messageBuffer = s.getBytes();
-            byte[] nameBuffer = name.getBytes();
             // 보내는 패킷.
             DatagramPacket messagePacket;
-            DatagramPacket namePacket;
 
             // 패킷을 생성.
             messagePacket = new DatagramPacket(messageBuffer, messageBuffer.length, address, otherPort);// 패켓에 메시지를 담음.
-            namePacket = new DatagramPacket(nameBuffer, nameBuffer.length, address, otherPort);// 패킷에 이름을 담음.
             try {
                 socket.send(messagePacket);
-                socket.send(namePacket);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String sendMessege = name +"(SENT): " + s + "\n";   
+            String sendMessege = s + "\n";   
             textArea.append(sendMessege);// 보낸 메시지를 텍스트 필드에 추가.
             saveLog(sendMessege);
             textField.selectAll();
@@ -147,9 +148,11 @@ public class MessengerA {
         }
     }
     
-    public static void main(String[] args) throws IOException, SQLException{
-		LoginWindow lg = new LoginWindow(new MessengerA());
-	}
-
+    public static void main(String[] args) throws IOException, SQLException
+    {
+    	MessengerA msg = new MessengerA();
+    	msg.process();
+    }
+ 
 
 }

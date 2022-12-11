@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -30,40 +31,45 @@ public class LoginWindow{
 	protected JButton addUserButton;
 	String ruid;
 	boolean set;// MenseengerA visible 설정.
-	MessengerA msgA;
+	cardtest card;
+	int myPort;
 
 	// 유저 클래스 
 	class User{
+		int id;
 		String uid;
 		String pwd;
 
-		public User(String uid,String pwd) {
+		public User(int id, String uid,String pwd) {
+			this.id = id;
 			this.uid = uid;
 			this.pwd = pwd;
 		}
-		
-		@Override
-		public boolean equals(Object object) {
-			User product = (User) object;
-			if (product.uid.equals(this.uid) && product.pwd.equals(this.pwd)) {
-				return true;
-			}
-			return false;
+		public User(String uid, String pwd)
+		{
+			this.uid = uid;
+			this.pwd = pwd;
+			this.id = 0;
+		}
+
+		public String getUid()
+		{
+			return uid;
 		}
 	}
 
 	List<User> userList;
 
-	
-	public LoginWindow(MessengerA msgA) throws IOException{
+	// 생성자.
+	public LoginWindow() throws IOException{
 		dbName = "user_db";
-		set = false;
 		userList = new ArrayList<>();
-		MyFrame f= new MyFrame();
-		this.msgA = msgA;
-		msgA.process();
+		readLog();
 	}
 
+	public void startFrame() {
+		MyFrame f = new MyFrame();
+	}
 	// 유저 DB와 연결.
 	public static Connection makeConnection(String dbName) {
 		String url = "jdbc:mariadb://localhost:3306/" + dbName;
@@ -89,40 +95,28 @@ public class LoginWindow{
 		Connection con = makeConnection(dbName);
 		int count = 0;
 		try {
+
 			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from user_table");
+			// 학생 테이블에서 불러오기.
+			ResultSet rs = stmt.executeQuery("select * from student_table");
 			while (rs.next())
 			{
-				User user = new User(rs.getString("uid"), rs.getString("pwd"));
+				User user = new User(rs.getInt("id")+6000, rs.getString("uid"), rs.getString("pwd"));
+				userList.add(user);
+			}
+
+			// 교수 테이블에서 불러오기.
+			rs = stmt.executeQuery("select * from professor_table");
+			while (rs.next())
+			{
+				User user = new User(rs.getInt("id")+5000, rs.getString("uid"), rs.getString("pwd"));
 				userList.add(user);
 			}
 		} catch(SQLException e) {
 			System.out.println(e.getErrorCode());
 			System.exit(0);
-
 		}
 	}
-
-	// 회원가입 메소드.
-	public void addUser(User addUser) {
-		Connection con = makeConnection(dbName);
-		try {
-			Statement stmt = con.createStatement();
-			String s = "insert into user_table values";
-			s += "(null,'" + addUser.uid + "','" +addUser.pwd+ "')";
-			System.out.println(s);
-			int i = stmt.executeUpdate(s);
-			if(i==1)
-				System.out.println("레코드 추가 성공");
-			else 
-				System.out.println("레코드 추가 실패");
-		}catch (SQLException e) {
-			System.out.println(e.getMessage());
-			System.exit(0);
-		}
-
-	}
-
 
 	// 로그인 인터페이스
 	class MyFrame extends JFrame implements ActionListener{
@@ -149,14 +143,8 @@ public class LoginWindow{
 
 			loginButton = new JButton("로그인");
 			buttonPanel.add(loginButton);
-			addUserButton = new JButton("추가");
-			buttonPanel.add(addUserButton);
 
 			loginButton.addActionListener(this);
-			addUserButton.addActionListener(this);
-
-
-			readLog();
 
 			pack();
 			setVisible(true);
@@ -178,26 +166,20 @@ public class LoginWindow{
 			ruid = idTextField.getText();
 			String pwd = pwdTextField.getText();
 
-			User loginUser =  new User(ruid,pwd);
-
-			// 로그인 버튼 MessengerA false -> true. 
 			if(evt.getSource() == loginButton) {
-				if(userList.contains(loginUser)){
-					msgA.getterName(ruid);
-					this.dispose();
-					set = true;
-					msgA.f.setVisible(true);
+				// uid, pwd 검사.
+				Iterator<User> it = userList.iterator();
+				while (it.hasNext()) {
+					User u = it.next();
+					if (u.uid.equals(ruid) && u.pwd.equals(pwd)) {
+						myPort = u.id;
+						this.dispose();
+					}
+
+					else System.out.println("로그인 실패");
 				}
-				else System.out.println("로그인 실패");
-			}
-			
-			// 회원가입 버튼. 
-			else if(evt.getSource() == addUserButton){
-				addUser(loginUser);
 			}
 		}
 	}
-
 }
-
 
