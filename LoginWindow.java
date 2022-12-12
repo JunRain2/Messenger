@@ -19,11 +19,12 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class LoginWindow{
 	protected JTextField idTextField;
-	protected JTextField pwdTextField;
+	protected JPasswordField pwdPasswordField;
 	String dbName;
 	protected JPanel idPanel;
 	protected JPanel buttonPanel;
@@ -63,6 +64,7 @@ public class LoginWindow{
 
 	// 생성자.
 	public LoginWindow() throws IOException{
+		card = new cardtest();
 		f = new MyFrame();
 		dbName = "user_db";
 		userList = new ArrayList<>();
@@ -138,8 +140,9 @@ public class LoginWindow{
 			idTextField = new JTextField(20);
 			idPanel.add(idTextField);
 			idPanel.add(new JLabel("비밀번호"));
-			pwdTextField = new JTextField(20);
-			idPanel.add(pwdTextField);
+			pwdPasswordField = new JPasswordField(20);
+			pwdPasswordField.setEchoChar('*');
+			idPanel.add(pwdPasswordField);
 
 			buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
@@ -168,22 +171,26 @@ public class LoginWindow{
 
 		public void actionPerformed(ActionEvent evt) {
 			ruid = idTextField.getText();
-			String pwd = pwdTextField.getText();
+			String realPwd = "";
+			char[] pwd = pwdPasswordField.getPassword();
+			
+			for(char cha : pwd)
+			{
+				Character.toString(cha);
+				realPwd +=(realPwd.equals(""))?""+cha+"" : ""+cha+"";
+			}
 
 			if(evt.getSource() == loginButton) {
-				if (checkList(ruid,pwd)) {
+				if (checkList(ruid,realPwd)) {
 					this.dispose();
-					card = new cardtest(myPort, ruid);
+					card.getMyPortAndName(myPort, ruid);
+					card.f.setVisible(true);
 					System.out.println(ruid);
 					System.out.println(myPort);
 				}
 
 			}
 		}
-	}
-	public static void main(String[] args) throws IOException
-	{
-		new LoginWindow();
 	}
 }
 

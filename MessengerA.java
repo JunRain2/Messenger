@@ -29,14 +29,14 @@ public class MessengerA {
 	MyFrame f;
 
 	// 자신의 주소를 생성자를 통해 생성.
-	public MessengerA(int myPort, int otherPort, String name) throws IOException{
+	public MessengerA(int myPort, int otherPort, String name) throws IOException {
 
 		this.myPort = myPort;
 		this.otherPort = otherPort;
 		this.name = name;
 		dbName = "msg_db";
 		f = new MyFrame();
-		address = InetAddress.getByName("192.168.45.228");
+		address = InetAddress.getByName("192.168.142.250");
 		socket = new DatagramSocket(myPort);// UDP 프로토콜을 사용하는 소켓을 생성.
 	}
 
@@ -88,6 +88,7 @@ public class MessengerA {
 				messagePacket = new DatagramPacket(messageBuf, messageBuf.length);
 				socket.receive(messagePacket);
 				String receiveMessage = new String(new String(messageBuf) + "\n");
+				saveLog(receiveMessage);
 				textArea.append(receiveMessage);// 받은 패킷을 영역에 표시.
 			}catch (IOException e){
 				e.printStackTrace();
@@ -117,8 +118,8 @@ public class MessengerA {
 
 		// 이벤트 실행시 메시지 전송.
 		public void actionPerformed(ActionEvent evt) {
-			String s = textField.getText();
-			s ="["+ name+"] :" + s;
+			String s = "["+ name+"] :" + textField.getText();
+
 			byte[] messageBuffer = s.getBytes();
 			// 보내는 패킷.
 			DatagramPacket messagePacket;
@@ -138,11 +139,16 @@ public class MessengerA {
 		}
 	}
 
+	// 원인이 프레임이 종속적으로 선언되는게 아니라 독립적으로 선언되어서 값에 null값이 들어가는 상황. 따라서 while문으로 강제로 종속시킴.
 	public static void main(String[] args) throws IOException, SQLException
 	{
 		LoginWindow lw = new LoginWindow();//각 클래스 필드를 연결해 process 실행.
-		lw.card.msg.process();
+		while(true) {
+			System.out.print("\n");
+			if(lw.card.set==true) {
+				lw.card.msg.process();
+				break;
+			}
+		}
 	}
-
-
 }
